@@ -1,99 +1,129 @@
 package io.zipcoder;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 public class Classroom {
+    Student[] students;
 
-    private Student[] students;
-    private int studentsEnrolled;
-    private int maxStudents;
 
-    public Classroom() {
-        this(30);
-    }
-
-    public Classroom(int maxStudents) {
-        this.students = new Student[maxStudents];
+    public Classroom(int maxNumberOfStudents) {
+        this.students = new Student[maxNumberOfStudents];
     }
 
     public Classroom(Student[] students) {
         this.students = students;
     }
 
-    public boolean addStudent(Student student) {
-        for (int i = 0; i < students.length; i++) {
-            if (students[i] == null) {
-                students[i] = student;
-                return true;
-            }
-        }
-        return false;
+    public Classroom() {
+        this.students = new Student[30];
     }
 
-    public Student removeStudent(String firstName, String lastName) {
-        for (int i = 0; i < students.length; i++) {
-            if ((students[i].getFirstName() == firstName) && (students[i].getLastName() == lastName)) {
-                Student studentToBeRemoved = students[i];
-                students[i] = null;
-                return studentToBeRemoved;
-            }
-        }
-        return null;
+    public Student[] getStudents() {
+        return this.students;
     }
 
-    public double getClassAverage(){
-        DecimalFormat decimalFormat = new DecimalFormat("###.#");
-        double sumOfAllAverages = 0;
-        int count = 0;
-        for (int i = 0; i < students.length; i++) {
-            if (students[i] != null) {
-                sumOfAllAverages += students[i].getAverage();
-                count++;
-            }
+    public double getAverageExamScore() {
+        double totalAverages = 0;
+        for (Student s : this.students) {
+            totalAverages += s.getAverageExamScore();
         }
-        return Double.parseDouble(decimalFormat.format(sumOfAllAverages/count));
+        return totalAverages / this.students.length;
     }
 
-    public String listStudentsByScore() {
-        ArrayList<Student> noEmptySpaces = new ArrayList<>();
+    public void addStudent(Student student) {
         for (int i = 0; i < this.students.length; i++) {
-            if (this.students[i] != null) {
-                noEmptySpaces.add(this.students[i]);
+            if (this.students[i] == null) {
+                this.students[i] = student;
+                break;
             }
         }
-        Collections.sort(noEmptySpaces, Student.averageGradeComparator.thenComparing(Student::getLastName));
-        return noEmptySpaces.toString();
     }
 
-    public ArrayList<Student> getOrderedStudentsAsList() {
-        ArrayList<Student> noEmptySpaces = new ArrayList<>();
+    public void removeStudent(String firstName, String lastName) {
+        int indexToReplace = -1;
+        int lastStudentIndex = this.students.length - 1;
+
         for (int i = 0; i < this.students.length; i++) {
-            if (this.students[i] != null) {
-                noEmptySpaces.add(this.students[i]);
+            if (this.students[i].getFirstName().equals(firstName) && this.students[i].getLastName().equals(lastName)) {
+                indexToReplace = i;
+                break;
             }
         }
-        Collections.sort(noEmptySpaces, Student.averageGradeComparator.thenComparing(Student::getLastName));
-        return noEmptySpaces;
+        for(int i = 0; i < this.students.length; i++){
+            if(this.students[i] == null){
+                lastStudentIndex = i - 1;
+                break;
+            }
+        }
+
+        if(indexToReplace != -1){
+            this.students[indexToReplace] = this.students[lastStudentIndex];
+            this.students[lastStudentIndex] = null;
+        }
     }
 
-    public String gradeClass() {
-        ArrayList<Student> OrderedListOfStudents = this.getOrderedStudentsAsList();
-        StringBuilder gradedStudents = new StringBuilder();
-        for (int index = 0; index < OrderedListOfStudents.size(); index++) {
-            if ((int) Math.ceil(OrderedListOfStudents.size() * .1) >= index + 1) {
-                gradedStudents.append(OrderedListOfStudents.get(index).getFirstName() + " " + OrderedListOfStudents.get(index).getLastName() + " : A\n");
-            } else if ((int) Math.ceil(OrderedListOfStudents.size() * .29) >= index + 1) {
-                gradedStudents.append(OrderedListOfStudents.get(index).getFirstName() + " " + OrderedListOfStudents.get(index).getLastName() + " : B\n");
-            } else if ((int) Math.ceil(OrderedListOfStudents.size() * .5) >= index + 1) {
-                gradedStudents.append(OrderedListOfStudents.get(index).getFirstName() + " " + OrderedListOfStudents.get(index).getLastName() + " : C\n");
-            } else if ((int) Math.ceil(OrderedListOfStudents.size() * .89) >= index + 1) {
-                gradedStudents.append(OrderedListOfStudents.get(index).getFirstName() + " " + OrderedListOfStudents.get(index).getLastName() + " : D\n");
-            } else if ((int) Math.ceil(OrderedListOfStudents.size() * .89) <= index + 1){
-                gradedStudents.append(OrderedListOfStudents.get(index).getFirstName() + " " +OrderedListOfStudents.get(index).getLastName() + " : F\n");
+    public Student[] getStudentsByGrade() {
+        int amountOfStudents = this.students.length;
+        for(int i = 0; i < this.students.length; i++){
+            if(this.students[i] == null){
+                amountOfStudents = i;
+                break;
             }
         }
-        return gradedStudents.toString();
+        Student[] s = new Student[amountOfStudents];
+
+        for(int i = 0; i < s.length; i++){
+            s[i] = this.students[i];
+        }
+
+        Comparator c = new Comparator<Student>() {
+            @Override
+            public int compare(Student s1, Student s2) {
+                if (s1.getAverageExamScore() < s2.getAverageExamScore()) {
+                    return 1;
+                }
+                if (s1.getAverageExamScore() == s2.getAverageExamScore()) {
+                    if (s1.getLastName().compareTo(s2.getLastName()) > 0) {
+                        return 1;
+                    }
+                }
+                return -1;
+            }
+        };
+
+
+        Arrays.sort(s, c);
+
+        return s;
     }
+
+    public HashMap<Character, ArrayList<Student>> getGradeBook(){
+        HashMap<Character, ArrayList<Student>> gradeBook = new HashMap<>();
+        gradeBook.put('A', new ArrayList<>());
+        gradeBook.put('B', new ArrayList<>());
+        gradeBook.put('C', new ArrayList<>());
+        gradeBook.put('D', new ArrayList<>());
+        gradeBook.put('F', new ArrayList<>());
+
+        ArrayList<Student> ascendingOrderStudents = new ArrayList<>(Arrays.asList(getStudentsByGrade()));
+        Collections.reverse(ascendingOrderStudents);
+
+        for(int i = 0; i < ascendingOrderStudents.size(); i++){
+            if((double)(i + 1) / ascendingOrderStudents.size() > .90){
+                gradeBook.get('A').add(ascendingOrderStudents.get(i));
+            } else if((double)(i + 1) / ascendingOrderStudents.size() > .70){
+                gradeBook.get('B').add(ascendingOrderStudents.get(i));
+            } else if((double)(i + 1) / ascendingOrderStudents.size() > .49){
+                gradeBook.get('C').add(ascendingOrderStudents.get(i));
+            } else if((double)(i + 1) / ascendingOrderStudents.size() > .12){
+                gradeBook.get('D').add(ascendingOrderStudents.get(i));
+            } else {
+                gradeBook.get('F').add(ascendingOrderStudents.get(i));
+            }
+        }
+
+        return gradeBook;
+    }
+
 }

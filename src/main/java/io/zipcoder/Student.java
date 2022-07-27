@@ -1,24 +1,22 @@
 package io.zipcoder;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Student {
     private String firstName;
     private String lastName;
-    private List<Double> testScores;
+    private ArrayList<Double> examScores;
 
-    public Student(String firstName, String lastName, Double[] examScore) {
+
+    public Student(String firstName, String lastName, Double[] testScores) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.testScores = new LinkedList<>(Arrays.asList(examScore));
+        this.examScores = new ArrayList<Double>(Arrays.asList(testScores));
     }
 
     public String getFirstName() {
-        return firstName;
+        return this.firstName;
     }
 
     public void setFirstName(String firstName) {
@@ -26,54 +24,44 @@ public class Student {
     }
 
     public String getLastName() {
-        return lastName;
+        return this.lastName;
     }
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
-    public int getExamsTaken() {
-        return testScores.size();
+    public int getNumberOfExamsTaken() {
+        return this.examScores.size();
     }
 
-    public String printExamScores() {
-        StringBuilder sb = new StringBuilder();
-        DecimalFormat df = new DecimalFormat("###");
-        Object[] tempArray = testScores.toArray();
-        for (int i = 0; i < tempArray.length; i++) {
-            sb.append("Exam " + (i + 1) + " -> " + df.format(tempArray[i]) + "\n");
+    public String getExamScores() {
+        String scores = "Exam Scores:";
+
+        for(int i = 1; i <= this.examScores.size(); i++){
+            scores += "\n\tExam " + i + " -> " + examScores.get(i - 1);
         }
-        sb.setLength(sb.length() - 1);
-        return sb.toString();
+        return scores;
     }
 
-    public void addExamScore(double score) {
-        this.testScores.add(score);
+    public void addExamScore(double examScore){
+        examScores.add(examScore);
     }
 
-    public void changeScoreForExam(int examNum, double newScore){
-        this.testScores.set(examNum, newScore);
+    public void setExamScores(int examNumber, double newScore){
+        examScores.set(examNumber - 1, newScore);
     }
 
-    public double getAverage() {
-        return (testScores.stream().mapToDouble(i -> i).sum())/testScores.size();
+    public double getAverageExamScore(){
+        return this.examScores.stream().mapToDouble(a -> a).average().orElseThrow();
     }
+
 
     @Override
     public String toString() {
-        String formattedOutput = "Student Name: " + this.firstName + " " + this.lastName +
-                "\n> Average Score: " + new Double(this.getAverage()).intValue() +
-                "\n" + this.printExamScores();
-        return formattedOutput;
+        return "\nStudent Name: " + getFirstName() + " " + getLastName() +
+                "\n> Average Score: " + getAverageExamScore() +
+                "\n> " + getExamScores();
     }
-
-    public static Comparator<Student> averageGradeComparator = new Comparator<Student>() {
-        public int compare(Student student1, Student student2) {
-            int firstAverage = new Double(student1.getAverage()).intValue();
-            int secondAverage = new Double(student2.getAverage()).intValue();
-            return secondAverage - firstAverage;
-        }
-    };
 
 }
